@@ -8,7 +8,7 @@ INCLUDES = include/spacelib/screen.s include/spacelib/util.s include/spacelib/in
 
 all: spacegame.prg
 
-spacegame.prg: src/main.s src/player.s src/aliens.s $(INCLUDES)
+spacegame.prg: src/main.s src/player.s src/aliens.s src/bullets.s $(INCLUDES)
 	$(ASM) $(ASMFLAGS) --list=$@.lst -o $@ $<
 
 clean:

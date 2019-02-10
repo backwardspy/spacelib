@@ -27,11 +27,11 @@ KB_STATE_DIFF   .byte $00, $00, $00, $00, $00, $00, $00, $00
 ;;; Sets A to zero if the given key was pressed this frame, non-zero otherwise.
 KEY_PRESSED .macro row, key_mask
   lda KB_STATE_DIFF+\row
-  and \key_mask
+  and #\key_mask
   beq _not_pressed              ; Key hasn't changed this frame.
 
   lda KB_STATE+\row
-  and \key_mask
+  and #\key_mask
   bne _not_pressed              ; Key isn't currently pressed.
 
   lda #0

@@ -1,4 +1,4 @@
-PLAYER_SPEED = 1
+PLAYER_SPEED = 4
 
 PLAYER_X_MIN = 25
 PLAYER_X_MAX = 319
@@ -24,6 +24,7 @@ PLAYER_INIT .macro
 PLAYER_UPDATE .macro
   #PLAYER_UPDATE_POSITION
   #PLAYER_UPDATE_TILE_POSITION
+  #PLAYER_UPDATE_FIRING
 .endm
 
 PLAYER_UPDATE_POSITION .macro
@@ -64,17 +65,6 @@ _move_sprite
 .endm
 
 PLAYER_UPDATE_TILE_POSITION .macro
-
-  ldy PLAYER_TY
-  lda SCREEN_BASE_ROW_LO, y
-  sta ZP_LO1
-  lda SCREEN_BASE_ROW_HI, y
-  sta ZP_HI1
-  ldy PLAYER_TX
-
-  lda #$20
-  sta (ZP_LO1), y
-
   ;; Sprite becomes fully visible at X = 24.
   ;; We subtract to account for this, with an offset of 12 for the sprite's center.
   lda PLAYER_X
@@ -105,8 +95,7 @@ _store_tx
   ;; Y is a single byte so it's simpler than X.
   lda PLAYER_Y
   sec
-  ;; sbc #50                       ; Offset by 50 to account for screen border.
-  sbc #58
+  sbc #50                       ; Offset by 50 to account for screen border.
   lsr a                         ; Divide by 8.
   lsr a
   lsr a
@@ -116,16 +105,13 @@ _store_tx
   lda PLAYER_Y
   and #7
   sta PLAYER_TYO
+.endm
 
-  ldy PLAYER_TY
-  lda SCREEN_BASE_ROW_LO, y
-  sta ZP_LO1
-  lda SCREEN_BASE_ROW_HI, y
-  sta ZP_HI1
-  ldy PLAYER_TX
+PLAYER_UPDATE_FIRING .macro
+  #KEY_PRESSED 7, KM_SPACE
+  bne _end
 
-  lda #64
-  clc
-  adc PLAYER_TXO
-  sta (ZP_LO1), y
+  #BULLETS_FIRE PLAYER_TX, PLAYER_TY, PLAYER_TXO, C_WHITE, BULLETDIR_UP
+
+_end
 .endm

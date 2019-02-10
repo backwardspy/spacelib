@@ -112,3 +112,16 @@ PUT_CHAR .macro x, y
 PUT_COL .macro x, y
   sta IO_COLORRAM+CHAR_POS(\x, \y)
 .endm
+
+;;; Place the indicated character into screen memory at the coordinates at the given
+;;; addresses.
+PUT_CHAR_ADDR .macro xa, ya, char
+  ldy \ya
+  lda SCREEN_BASE_ROW_LO, y
+  sta ZP_LO1
+  lda SCREEN_BASE_ROW_HI, y
+  sta ZP_HI1
+  ldy \xa
+  lda \char
+  sta (ZP_LO1), y
+.endm
