@@ -39,13 +39,23 @@ SCREEN_BASE_ROW_HI              ; High bytes.
     .byte >(SCREEN_BASE + SZ_W * row)
   .next
 
+;;; As above, but for color ram.
+COLOR_BASE_ROW_LO              ; Low bytes.
+  .for row = 0, row < 24, row += 1
+    .byte <(IO_COLORRAM + SZ_W * row)
+  .next
+COLOR_BASE_ROW_HI              ; High bytes.
+  .for row = 0, row < 24, row += 1
+    .byte >(IO_COLORRAM + SZ_W * row)
+  .next
+
 ;;; Set active VIC bank.
 SELECT_VIC_BANK .macro bank=0
   .cerror \bank < 0, "bank cannot be less than 0"
   .cerror \bank > 3, "bank cannot be greater than 3"
   lda IO_CIA2PRA
   and #%11111100
-  ora #+~\bank & 3
+  ora #~\bank & 3
   sta IO_CIA2PRA
 .endm
 
@@ -57,7 +67,7 @@ SELECT_CHARSET .macro ptr
   .cerror \ptr > 7, "ptr cannot be more than 7"
   lda IO_VMCSB
   and #%11110001
-  ora #\ptr << 1
+  ora #(\ptr) << 1
   sta IO_VMCSB
 .endm
 
@@ -124,4 +134,62 @@ PUT_CHAR_ADDR .macro xa, ya, char
   ldy \xa
   lda \char
   sta (ZP_LO1), y
+.endm
+
+;;; Place the indicated character into colour memory at the coordinates at the given
+;;; addresses.
+PUT_COLOR_ADDR .macro xa, ya, color
+  ldy \ya
+  lda COLOR_BASE_ROW_LO, y
+  sta ZP_LO1
+  lda COLOR_BASE_ROW_HI, y
+  sta ZP_HI1
+  ldy \xa
+  lda \color
+  sta (ZP_LO1), y
+.endm
+
+;;; Convert screen pos (x_hi/x_lo, y) to tile pos at (tx, ty).
+;;; Offset into tile goes into (txo, tyo).
+SCREEN_TO_TILE_POS .macro x_hi, x_lo, y, tx, ty, txo, tyo
+  ;; Sprite becomes fully visible at X = 24.
+  ;; We subtract to account for this, with an offset of 12 for the sprite's center.
+  lda \x_hi
+  sta ZP_0
+  lda \x_lo
+  sta ZP_1
+  #MATH_SUB_16_8 ZP_0, ZP_1, 12
+
+  ;; Divide LSB by 8.
+  lda ZP_1
+  lsr a
+  lsr a
+  lsr a
+
+  ;; Adjust for X MSB.
+  ldx ZP_0
+  beq _store_tx                 ; Skip if X MSB isn't set.
+  clc
+  adc #256 / 8
+_store_tx
+  sta \tx
+
+  ;; Mask bottom 4 bits of X position to get X offset into tile.
+  lda ZP_1
+  and #7
+  sta \txo
+
+  ;; Y is a single byte so it's simpler than X.
+  lda \y
+  sec
+  sbc #50                       ; Offset by 50 to account for screen border.
+  lsr a                         ; Divide by 8.
+  lsr a
+  lsr a
+  sta \ty
+
+  ;; Mask bottom 4 bits of Y position to get Y offset into tile.
+  lda \ty
+  and #7
+  sta \tyo
 .endm

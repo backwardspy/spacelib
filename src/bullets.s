@@ -9,10 +9,10 @@ BULLET_ACTIVE .fill MAX_BULLETS, 0
 BULLET_TX .fill MAX_BULLETS, 0
 BULLET_TY .fill MAX_BULLETS, 0
 BULLET_CHAR .fill MAX_BULLETS, 0
-BULLET_COLOUR .fill MAX_BULLETS, 0
+BULLET_COLOR .fill MAX_BULLETS, 0
 BULLET_DIRECTION .fill MAX_BULLETS, 0
 
-BULLETS_FIRE .macro tx, ty, txo, colour, direction
+BULLETS_FIRE .macro tx, ty, txo, color, direction
   ldx #0
 
 _loop
@@ -29,8 +29,8 @@ _loop
   adc \txo
   sta BULLET_CHAR, x
 
-  lda #\colour
-  sta BULLET_COLOUR, x
+  lda #\color
+  sta BULLET_COLOR, x
 
   lda #\direction
   sta BULLET_DIRECTION, x
@@ -64,17 +64,31 @@ _loop
   ;; Clear old position.
   #PUT_CHAR_ADDR ZP_0, ZP_1, #$20
 
+  lda BULLET_DIRECTION, x
+  cmp #BULLETDIR_DOWN
+  beq _move_down
+_move_up
   ;; Update Y position on ZP.
   ldy ZP_1
   dey
   cpy #0
   beq _kill_bullet
   sty ZP_1
-
+  jmp _draw
+_move_down
+  ldy ZP_1
+  iny
+  cpy #24
+  beq _kill_bullet
+  sty ZP_1
+_draw
   ;; Draw at new position.
   lda BULLET_CHAR, x
   sta ZP_2
   #PUT_CHAR_ADDR ZP_0, ZP_1, ZP_2
+  lda BULLET_COLOR, x
+  sta ZP_2
+  #PUT_COLOR_ADDR ZP_0, ZP_1, ZP_2
 
   ;; Update stored Y position.
   lda ZP_1

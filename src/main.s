@@ -1,5 +1,5 @@
 ;;; Debugging functionality.
-DEBUG_TRACE_RASTER = true
+DEBUG_TRACE_RASTER = false
 
 ;;; VIC configuration.
 VIC_BANK = 1
@@ -72,9 +72,16 @@ _loop
 
   #BULLETS_UPDATE
 
-  ;; Blue trace = sprite library.
+  ;; Blue trace = aliens code.
   .if DEBUG_TRACE_RASTER
     #SET_BORDER_COL C_BLUE
+  .endif
+
+  #ALIENS_UPDATE
+
+  ;; Purple trace = sprite library.
+  .if DEBUG_TRACE_RASTER
+    #SET_BORDER_COL C_PURPLE
   .endif
 
   #SPRITE_UPDATE

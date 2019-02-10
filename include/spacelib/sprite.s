@@ -65,20 +65,20 @@ SPR_SET_COLOR .macro idx, color
 
 SPR_SET_POS .macro idx, x_msb, x_lsb, y
   lda \x_lsb
-  sta IO_SP0X + \idx * 2
+  sta IO_SP0X + (\idx) * 2
   lda \y
-  sta IO_SP0Y + \idx * 2
+  sta IO_SP0Y + (\idx) * 2
 
   lda \x_msb
   beq _unset_x_msb
 _set_x_msb
   lda IO_MSIGX
-  ora #1 << \idx
+  ora #%1 << (\idx)
   sta IO_MSIGX
   bne _end
 _unset_x_msb
   lda IO_MSIGX
-  and #+~(1 << \idx)
+  and #~(%1 << (\idx))
   sta IO_MSIGX
 _end
 .endm
@@ -87,31 +87,31 @@ SPR_SET_EXPAND .macro idx, x, y
   lda IO_XXPAND
 
   .if \x
-    ora #1 << \idx
+    ora #%1 << (\idx)
   .else
-    and #~(1 << \idx)
+    and #~(%1 << (\idx))
   .endif
   sta IO_XXPAND
 
   lda IO_YXPAND
   .if \x
-    ora #1 << \idx
+    ora #%1 << (\idx)
   .else
-    and #~(1 << \idx)
+    and #~(%1 << (\idx))
   .endif
   sta IO_YXPAND
 .endm
 
 SPR_ENABLE .macro idx, multicolor=true
   lda IO_SPENA
-  ora #1 << \idx
+  ora #%1 << (\idx)
   sta IO_SPENA
 
   lda IO_SPMC
   .if \multicolor
-    ora #1 << \idx
+    ora #%1 << (\idx)
   .else
-    and #~(1 << \idx)
+    and #~(%1 << (\idx))
   .endif
   sta IO_SPMC
 .endm
