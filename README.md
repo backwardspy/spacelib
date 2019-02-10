@@ -8,8 +8,10 @@ Heavy inspiration taken from Derek Morris' supporting code for the Retro Game De
 
 ### Memory Map
 
+```
 $0801:      BASIC loader
 $4000:$4FFF Sprites
 $7000:$77FF Charset 1
 $7800:$7FFF Charset 2 (unused)
 $8000:$BFFF Code
+```
