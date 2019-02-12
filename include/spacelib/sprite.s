@@ -8,6 +8,16 @@ spr_anim_timer  .fill N_SPR     ; current frame delay timer
 spr_anim_loop   .fill N_SPR     ; animation loop toggle
 spr_anim_active .fill N_SPR     ; animation active toggle
 
+SPR_MASK
+.for i = 0, i < N_SPR, i += 1
+  .byte %1 << i
+.next
+
+SPR_MASK_INV
+.for i = 0, i < N_SPR, i += 1
+  .byte ~(%1 << i)
+.next
+
 SPR_PLAY_ANIM .macro idx, start, end, delay, loop
   .cerror \delay < 1, "delay must be >= 1"
   ldx #\idx
@@ -103,17 +113,25 @@ SPR_SET_EXPAND .macro idx, x, y
 .endm
 
 SPR_ENABLE .macro idx, multicolor=true
-  lda IO_SPENA
-  ora #%1 << (\idx)
+  ldx \idx
+  lda SPR_MASK, x
+  ora IO_SPENA
   sta IO_SPENA
 
   lda IO_SPMC
   .if \multicolor
-    ora #%1 << (\idx)
+    ora SPR_MASK, x
   .else
-    and #~(%1 << (\idx))
+    and SPR_MASK_INV, x
   .endif
   sta IO_SPMC
+.endm
+
+SPR_DISABLE .macro idx
+  ldx \idx
+  lda SPR_MASK_INV, x
+  and IO_SPENA
+  sta IO_SPENA
 .endm
 
 SPRITE_UPDATE .macro
@@ -139,6 +157,17 @@ _loop
   lda spr_anim_frame, x
   cmp spr_anim_end, x
   bmi _set_frame                ; skip if A >= spr_anim_end,x
+  lda spr_anim_loop, x
+  bne _reset_anim
+
+  ;; this non-looping sprite can be destroyed.
+  lda #0
+  sta spr_anim_active, x
+  stx ZP_0
+  #SPR_DISABLE ZP_0
+  jmp _skip
+
+_reset_anim
   lda spr_anim_start, x
   sta spr_anim_frame, x
 

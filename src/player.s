@@ -18,7 +18,7 @@ PLAYER_INIT .macro
   #SPR_SET_PTR 0, SPR0_PTR
   #SPR_SET_COLOR 0, C_BLUE
   #SPR_SET_POS 0, PLAYER_X, PLAYER_X+1, PLAYER_Y
-  #SPR_ENABLE 0
+  #SPR_ENABLE #0
 .endm
 
 PLAYER_UPDATE .macro
@@ -62,6 +62,11 @@ _check_down
 
 _move_sprite
   #SPR_SET_POS 0, PLAYER_X, PLAYER_X+1, PLAYER_Y
+
+  #KEY_PRESSED 0, KM_DELETE
+  bne _end
+  #EXPLODE_SPRITE 1
+_end
 .endm
 
 PLAYER_UPDATE_FIRING .macro

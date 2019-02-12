@@ -13,7 +13,7 @@ VIC_BANK_BASE = $4000 * VIC_BANK
 
 * = $4000
 SPR0_PTR = (* - VIC_BANK_BASE) / $40 ; TODO: let spacelib do this calc
-  .binary "ships.spd", 9
+  .binary "sprites.spd", 9
 
 * = $7000
 CHAR0_PTR = (* - VIC_BANK_BASE) / $800 ; TODO: let spacelib do this calc
@@ -25,6 +25,11 @@ CHAR0_PTR = (* - VIC_BANK_BASE) / $800 ; TODO: let spacelib do this calc
   .include "spacelib/screen.s"
   .include "spacelib/sprite.s"
   .include "spacelib/math.s"
+
+EXPLODE_SPRITE .macro idx
+  #SPR_SET_COLOR \idx, C_ORANGE
+  #SPR_PLAY_ANIM \idx, 3, 7, 8, false
+.endm
 
   .include "player.s"
   .include "aliens.s"

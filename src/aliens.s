@@ -40,7 +40,7 @@ ALIENS_INIT_SPRITES .macro
     #SPR_SET_PTR idx+1, SPR0_PTR + 1 + (idx & 1)
     #SPR_SET_COLOR idx+1, C_RED
     #SPR_SET_POS idx+1, ALIEN_X_HI + idx, ALIEN_X_LO + idx, ALIEN_Y + idx
-    #SPR_ENABLE idx+1
+    #SPR_ENABLE #idx+1
   .next
 .endm
 
