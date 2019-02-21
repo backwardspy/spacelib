@@ -18,7 +18,7 @@ SPR_MASK_INV
   .byte ~(%1 << i)
 .next
 
-SPR_PLAY_ANIM .macro idx, start, end, delay, loop
+SPR_PLAY_ANIM_VVVVV .macro idx, start, end, delay, loop
   .cerror \delay < 1, "delay must be >= 1"
   ldx #\idx
 
@@ -44,56 +44,81 @@ SPR_PLAY_ANIM .macro idx, start, end, delay, loop
   sta spr_anim_active, x
 .endm
 
-SPR_STOP_ANIM .macro idx
+SPR_STOP_ANIM_V .macro idx
   ldx #\idx
   lda #0
   sta spr_anim_active, x
 .endm
 
-SPR_START_ANIM .macro idx
+SPR_START_ANIM_V .macro idx
   ldx #\idx
   lda #1
   sta spr_anim_active, x
 .endm
 
-SPR_SET_MULTICOLORS .macro mc1, mc2
+SPR_SET_MULTICOLORS_VV .macro mc1, mc2
   lda #\mc1
   sta IO_SPMC0
   lda #\mc2
   sta IO_SPMC1
 .endm
 
-SPR_SET_PTR .macro idx, addr
+SPR_SET_PTR_VV .macro idx, addr
   lda #\addr
-  sta VIC_BANK_BASE + $07F8 + \idx
+  sta VIC_BANK_BASE + $07F8 + (\idx)
 .endm
 
-SPR_SET_COLOR .macro idx, color
+SPR_SET_COLOR_VV .macro idx, color
   lda #\color
-  sta IO_SP0COL + \idx
+  sta IO_SP0COL + (\idx)
 .endm
 
-SPR_SET_POS .macro idx, x_msb, x_lsb, y
-  lda \x_lsb
+SPR_SET_POS_VXXX .macro idx, x_hi, x_lo, y
+  lda \x_lo
   sta IO_SP0X + (\idx) * 2
   lda \y
   sta IO_SP0Y + (\idx) * 2
 
-  lda \x_msb
-  beq _unset_x_msb
-_set_x_msb
+  lda \x_hi
+  beq _unset_x_hi
+_set_x_hi
   lda IO_MSIGX
   ora #%1 << (\idx)
   sta IO_MSIGX
   bne _end
-_unset_x_msb
+_unset_x_hi
   lda IO_MSIGX
   and #~(%1 << (\idx))
   sta IO_MSIGX
 _end
 .endm
 
-SPR_SET_EXPAND .macro idx, x, y
+SPR_SET_POS_AXXX .macro idx, x_hi, x_lo, y
+  lda \idx
+  asl a
+  tay
+
+  lda \x_lo
+  sta IO_SP0X, y
+  lda \y
+  sta IO_SP0Y, y
+
+  ldy \idx
+  lda \x_hi
+  beq _unset_x_hi
+_set_x_hi
+  lda IO_MSIGX
+  ora SPR_MASK, y
+  sta IO_MSIGX
+  bne _end
+_unset_x_hi
+  lda IO_MSIGX
+  and SPR_MASK_INV, y
+  sta IO_MSIGX
+_end
+.endm
+
+SPR_SET_EXPAND_VVV .macro idx, x, y
   lda IO_XXPAND
 
   .if \x
@@ -104,7 +129,7 @@ SPR_SET_EXPAND .macro idx, x, y
   sta IO_XXPAND
 
   lda IO_YXPAND
-  .if \x
+  .if \y
     ora #%1 << (\idx)
   .else
     and #~(%1 << (\idx))
@@ -112,8 +137,8 @@ SPR_SET_EXPAND .macro idx, x, y
   sta IO_YXPAND
 .endm
 
-SPR_ENABLE .macro idx, multicolor=true
-  ldx \idx
+SPR_ENABLE_VV .macro idx, multicolor=true
+  ldx #\idx
   lda SPR_MASK, x
   ora IO_SPENA
   sta IO_SPENA
@@ -127,7 +152,7 @@ SPR_ENABLE .macro idx, multicolor=true
   sta IO_SPMC
 .endm
 
-SPR_DISABLE .macro idx
+SPR_DISABLE_A .macro idx
   ldx \idx
   lda SPR_MASK_INV, x
   and IO_SPENA
@@ -164,7 +189,7 @@ _loop
   lda #0
   sta spr_anim_active, x
   stx ZP_0
-  #SPR_DISABLE ZP_0
+  #SPR_DISABLE_A ZP_0
   jmp _skip
 
 _reset_anim

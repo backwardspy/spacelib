@@ -27,8 +27,8 @@ CHAR0_PTR = (* - VIC_BANK_BASE) / $800 ; TODO: let spacelib do this calc
   .include "spacelib/math.s"
 
 EXPLODE_SPRITE .macro idx
-  #SPR_SET_COLOR \idx, C_ORANGE
-  #SPR_PLAY_ANIM \idx, 3, 7, 8, false
+  #SPR_SET_COLOR_VV \idx, C_ORANGE
+  #SPR_PLAY_ANIM_VVVVV \idx, 3, 7, 8, false
 .endm
 
   .include "player.s"
@@ -46,7 +46,7 @@ entry
   #SET_BG_COL C_BLACK
   #SET_BORDER_COL C_DARKGREY
 
-  #SPR_SET_MULTICOLORS C_LIGHTGREY, C_GREY
+  #SPR_SET_MULTICOLORS_VV C_LIGHTGREY, C_GREY
 
   #PLAYER_INIT
   #ALIENS_INIT

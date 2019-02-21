@@ -158,7 +158,7 @@ SCREEN_TO_TILE_POS .macro x_hi, x_lo, y, tx, ty, txo, tyo
   sta ZP_0
   lda \x_lo
   sta ZP_1
-  #MATH_SUB_16_8 ZP_0, ZP_1, 12
+  #MATH_SUB_16_8_AAX ZP_0, ZP_1, #12
 
   ;; Divide LSB by 8.
   lda ZP_1
